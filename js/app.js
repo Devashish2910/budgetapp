@@ -21,9 +21,9 @@ var budgetController = (function () {
         var total = 0.00, i;
         for(i = 0; i < dataStructure.allItems[type].length; i++ ){
             console.log(i + " = " + dataStructure.allItems[type][i].amount)
-            total += dataStructure.allItems[type][i].amount;
+            total += parseFloat(dataStructure.allItems[type][i].amount);
         }
-        dataStructure.totals[type] = total;
+        dataStructure.totals[type] = parseFloat(total).toFixed(2);
        
     };
     
@@ -37,7 +37,7 @@ var budgetController = (function () {
             inc: 0.00,
             exp: 0.00
         },
-        budget: 0,
+        budget: 0.00,
         percentage: -1
     }
     
@@ -99,18 +99,20 @@ var UIController = (function () {
         totalRemainingBudget: ".budget__value",
         totalBudgetIncome: ".budget__income--value",
         totalBudgetExpenses: ".budget__expenses--value",
-        totalExpensesPercent: ".budget__expenses--percentage"
+        totalExpensesPercent: ".budget__expenses--percentage",
+        container: '.container',
+        month: '.budget__title--month'
     };
     
     //Object for setting value global
     return {
         
        inputValues : function () {
-        
+            var str = document.querySelector(DOM.txtDescription).value;
         // values passed in an object
           return {
                 type: document.querySelector(DOM.ddlType).value, // Will return inc or dec
-                description: document.querySelector(DOM.txtDescription).value, //Will eturn description
+                description: str.charAt(0).toUpperCase() + str.slice(1).toLowerCase(), //Will eturn description
                 amount: parseFloat(document.querySelector(DOM.txtAmount).value) //Will return amount
             };
            
@@ -129,11 +131,11 @@ var UIController = (function () {
        //1. Create HTML elements by placing placeholder
        if (typeOfOperation === 'inc') {
            element = DOM.incomeList;
-           html = '<div class="item clearfix" id="income-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%amount%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+           html = '<div class="item clearfix" id="inc-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%amount%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
        }
        else if (typeOfOperation === 'exp') {
            element = DOM.expensesList;
-           html = '<div class="item clearfix" id="expense-%id%"><div class="item__description">%description%</div><div class="right clearfix"> <div class="item__value">- %amount%</div> <div class="item__percentage">21%</div> <div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+           html = '<div class="item clearfix" id="exp-%id%"><div class="item__description">%description%</div><div class="right clearfix"> <div class="item__value">- %amount%</div> <div class="item__percentage">21%</div> <div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
        }
        //2.Replace placeholders with new data
             newHtml = html.replace('%id%', itemFromInputvalue.id);
@@ -147,8 +149,11 @@ var UIController = (function () {
             
             if(objectValuesFromBudgetController.totalBudget > 0){
                  document.querySelector(DOM.totalRemainingBudget).textContent = "+ " + objectValuesFromBudgetController.totalBudget;
-            }else{
+            }else if(objectValuesFromBudgetController.totalBudget < 0){
                 document.querySelector(DOM.totalRemainingBudget).textContent = "- " + objectValuesFromBudgetController.totalBudget;
+            }
+            else{
+                document.querySelector(DOM.totalRemainingBudget).textContent = '00.00';
             }
             document.querySelector(DOM.totalBudgetIncome).textContent = "+ " + objectValuesFromBudgetController.totalIncome;
             document.querySelector(DOM.totalBudgetExpenses).textContent = "- " + objectValuesFromBudgetController.totalExpense;
@@ -161,8 +166,23 @@ var UIController = (function () {
             }
             
         },
+        
         getDOM : function () {
             return DOM;
+        },
+        
+        displayMonth: function(){
+            
+            var month,year,date,monthArr;
+            
+            monthArr = ['January','February','March','April','May','June','July','August','Septmber','October','November','December'];
+            
+            date = new Date();
+            year = date.getFullYear();
+            month = date.getMonth();
+            
+            document.querySelector(DOM.month).textContent = monthArr[month] + ", " + year;
+            
         },
         
         // Set the default values of the elements
@@ -208,6 +228,7 @@ var controller = (function (UICtrl, budgetCtrl) {
          }
          
      });
+        document.querySelector(DOM.container).addEventListener('click', deleteData);
    
         
  };
@@ -249,10 +270,25 @@ var controller = (function (UICtrl, budgetCtrl) {
         }
     };
     
+    //Function for delete items from list
+    function deleteData(event) {
+    //1. Find ID,Type to identify element
+    var itemId, type, ID, splitId;
+    itemId = event.target.parentNode.parentNode.parentNode.parentNode.id;
+    if (itemId) {
+        splitId = itemId.split('-');
+        type = splitId[0];
+        ID = splitId[1];
+    }
+    //2. Delete It from data structure
+    //3. Delete from UI
+    //4. Update Budget
+};
     
     
     return{
         init : function(){
+            UICtrl.displayMonth();
             setEventListner();
             
           
