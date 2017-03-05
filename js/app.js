@@ -17,6 +17,16 @@ var budgetController = (function () {
         this.amount = amount; 
     };
     
+    var calculateTotals = function (type){
+        var total = 0.00, i;
+        for(i = 0; i < dataStructure.allItems[type].length; i++ ){
+            console.log(i + " = " + dataStructure.allItems[type][i].amount)
+            total += dataStructure.allItems[type][i].amount;
+        }
+        dataStructure.totals[type] = total;
+       
+    };
+    
     //Data structure for storing all activities
     var dataStructure = {
         allItems: {
@@ -24,13 +34,15 @@ var budgetController = (function () {
             exp: []
         },
         totals: {
-            inc: 0,
-            exp: 0
-        }
+            inc: 0.00,
+            exp: 0.00
+        },
+        budget: 0,
+        percentage: -1
     }
     
     return {
-    insertData: function (type, des, amt) {
+        insertData: function (type, des, amt) {
         var newItem, ID;
         
         // Set value of ID
@@ -40,7 +52,6 @@ var budgetController = (function () {
         else {
             ID = 0;
         }
-        
         // Create new Item base on income or expenses
         if (type === 'inc') {
             newItem = new Income(ID, des, amt);
@@ -48,16 +59,30 @@ var budgetController = (function () {
         else {
             newItem = new Expense(ID, des, amt);
         }
-        
         //Push new item into data structure
         dataStructure.allItems[type].push(newItem);
-        
         //Return new item to use else where
         return newItem;
-    }
-    
-       
-    }
+        },
+        calculateTotalBudget: function () {
+                //Calculate total income and expense
+                calculateTotals("exp");
+                calculateTotals("inc");
+                //Calculate total
+                dataStructure.budget = (dataStructure.totals.inc - dataStructure.totals.exp).toFixed(2);
+                //Calculate percentage
+                dataStructure.percentage = Math.round((dataStructure.totals.exp / dataStructure.totals.inc ) * 100 );
+            }
+            , getTotalBudget: function () {
+               return {
+                    totalIncome: dataStructure.totals.inc,
+                    totalExpense: dataStructure.totals.exp,
+                    totalBudget: dataStructure.budget,
+                    totalPercent: dataStructure.percentage
+                }
+               // return dataStructure;
+            }
+        }
 })();
 
 // UI CHANGES CONTROLLER
@@ -70,7 +95,11 @@ var UIController = (function () {
         txtDescription: ".add__description",
         txtAmount: ".add__value",
         incomeList: ".income__list",
-        expensesList: ".expenses__list"
+        expensesList: ".expenses__list",
+        totalRemainingBudget: ".budget__value",
+        totalBudgetIncome: ".budget__income--value",
+        totalBudgetExpenses: ".budget__expenses--value",
+        totalExpensesPercent: ".budget__expenses--percentage"
     };
     
     //Object for setting value global
@@ -82,7 +111,7 @@ var UIController = (function () {
           return {
                 type: document.querySelector(DOM.ddlType).value, // Will return inc or dec
                 description: document.querySelector(DOM.txtDescription).value, //Will eturn description
-                amount: document.querySelector(DOM.txtAmount).value //Will return amount
+                amount: parseFloat(document.querySelector(DOM.txtAmount).value) //Will return amount
             };
            
         // Values passed in an array
@@ -112,7 +141,26 @@ var UIController = (function () {
             newHtml  = newHtml.replace('%amount%', itemFromInputvalue.amount);
        //3. Apply changes to HTML
             document.querySelector(element).insertAdjacentHTML('beforeend',newHtml);
-   },
+        },
+        
+        displayBudget: function(objectValuesFromBudgetController){
+            
+            if(objectValuesFromBudgetController.totalBudget > 0){
+                 document.querySelector(DOM.totalRemainingBudget).textContent = "+ " + objectValuesFromBudgetController.totalBudget;
+            }else{
+                document.querySelector(DOM.totalRemainingBudget).textContent = "- " + objectValuesFromBudgetController.totalBudget;
+            }
+            document.querySelector(DOM.totalBudgetIncome).textContent = "+ " + objectValuesFromBudgetController.totalIncome;
+            document.querySelector(DOM.totalBudgetExpenses).textContent = "- " + objectValuesFromBudgetController.totalExpense;
+            
+            if(objectValuesFromBudgetController.totalPercent >= 0){
+            document.querySelector(DOM.totalExpensesPercent).textContent = objectValuesFromBudgetController.totalPercent + " %";
+            }
+            else{
+                document.querySelector(DOM.totalExpensesPercent).textContent = '---';
+            }
+            
+        },
         getDOM : function () {
             return DOM;
         },
@@ -158,17 +206,34 @@ var controller = (function (UICtrl, budgetCtrl) {
              insertData();
              UICtrl.clearAll();
          }
+         
      });
    
         
  };
     
-    // FUNCTION FOR ADD BUTTON CLICK EVENT/ENTER KEY PRESS
+    // CALCULATING OVERALL BUDGET
+    function updateOverallBudget(){
+        
+        var totalBudgetValues;
+        
+        //1. Calculations
+        budgetCtrl.calculateTotalBudget();
+        //2. Return Values
+        totalBudgetValues = budgetCtrl.getTotalBudget();
+        //3. Display In UI
+        UICtrl.displayBudget(totalBudgetValues);
+        
+    };
+    
+    // FUNCTION FOR ADD DATA TO DATA STRUCTURE AND SHOWING IN LIST
     function insertData() {
         var data,newItem;
         //1. GET INPUT DATA FROM UI
         data = UICtrl.inputValues();
       
+        if(data.amount > 0 && !isNaN(data.amount) && data.description !== ""){ 
+            
         //2. ADD INPUT DATA TO BUDGET CONTROLLER DATA STRUCTURE
         newItem = budgetCtrl.insertData(data.type, data.description, data.amount);
         
@@ -178,9 +243,10 @@ var controller = (function (UICtrl, budgetCtrl) {
         //4. Clear Fields
         UICtrl.clearAll();
         
-        //5. CALCULATE OVERALL BUDGET
+        //5. CALCULATE & update OVERALL BUDGET
+        updateOverallBudget();
         
-        //6. DISPLAY BUDGET IN UI (TOP SECTION)
+        }
     };
     
     
@@ -188,6 +254,7 @@ var controller = (function (UICtrl, budgetCtrl) {
     return{
         init : function(){
             setEventListner();
+            
           
         }
     }
