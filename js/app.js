@@ -69,9 +69,16 @@ var budgetController = (function () {
                 calculateTotals("exp");
                 calculateTotals("inc");
                 //Calculate total
+            
                 dataStructure.budget = (dataStructure.totals.inc - dataStructure.totals.exp).toFixed(2);
+          
+                
+        
+                
                 //Calculate percentage
+            if(dataStructure.totals.inc > 0){
                 dataStructure.percentage = Math.round((dataStructure.totals.exp / dataStructure.totals.inc ) * 100 );
+            }
             }
             , getTotalBudget: function () {
                return {
@@ -148,15 +155,15 @@ var UIController = (function () {
         displayBudget: function(objectValuesFromBudgetController){
             
             if(objectValuesFromBudgetController.totalBudget > 0){
-                 document.querySelector(DOM.totalRemainingBudget).textContent = "+ " + objectValuesFromBudgetController.totalBudget;
+                 document.querySelector(DOM.totalRemainingBudget).textContent = "+" + objectValuesFromBudgetController.totalBudget;
             }else if(objectValuesFromBudgetController.totalBudget < 0){
-                document.querySelector(DOM.totalRemainingBudget).textContent = "- " + objectValuesFromBudgetController.totalBudget;
+                document.querySelector(DOM.totalRemainingBudget).textContent =  objectValuesFromBudgetController.totalBudget;
             }
             else{
                 document.querySelector(DOM.totalRemainingBudget).textContent = '00.00';
             }
-            document.querySelector(DOM.totalBudgetIncome).textContent = "+ " + objectValuesFromBudgetController.totalIncome;
-            document.querySelector(DOM.totalBudgetExpenses).textContent = "- " + objectValuesFromBudgetController.totalExpense;
+            document.querySelector(DOM.totalBudgetIncome).textContent = "+" + objectValuesFromBudgetController.totalIncome;
+            document.querySelector(DOM.totalBudgetExpenses).textContent = "-" + objectValuesFromBudgetController.totalExpense;
             
             if(objectValuesFromBudgetController.totalPercent >= 0){
             document.querySelector(DOM.totalExpensesPercent).textContent = objectValuesFromBudgetController.totalPercent + " %";
