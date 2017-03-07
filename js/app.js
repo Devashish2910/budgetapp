@@ -206,7 +206,7 @@ var UIController = (function () {
                 document.querySelector(DOM.totalRemainingBudget).textContent = '00.00';
             }
             document.querySelector(DOM.totalBudgetIncome).textContent = formatNumber(objectValuesFromBudgetController.totalIncome, 'inc');
-            document.querySelector(DOM.totalBudgetExpenses).textContent = formatNumber(objectValuesFromBudgetController.totalExpense, 'dec');
+            document.querySelector(DOM.totalBudgetExpenses).textContent = formatNumber(objectValuesFromBudgetController.totalExpense, 'exp');
             if (objectValuesFromBudgetController.totalPercent >= 0) {
                 document.querySelector(DOM.totalExpensesPercent).textContent = objectValuesFromBudgetController.totalPercent + "%";
             }
