@@ -23,7 +23,7 @@ var calculationController = (function() {
       }  else {
           this.percentage = -1;
       };
-        console.log(this.percentage)
+        //console.log(this.percentage)
         return this.percentage;
     };
   
@@ -297,7 +297,8 @@ var userInterfaceController = (function() {
             if (obj.remain >= 0) {
                 document.querySelector(htmlIds.totalRemain).innerHTML = numberFormat(obj.remain, 'inc');
             } else if (obj.remain < 0) {
-                document.querySelector(htmlIds.totalRemain).innerHTML = numberFormat(obj.remain, 'exp');
+                let rmn = obj.remain;
+                document.querySelector(htmlIds.totalRemain).innerHTML = numberFormat(Math.abs(rmn), 'exp');
             }
             
             if (obj.percentage > 0) {
